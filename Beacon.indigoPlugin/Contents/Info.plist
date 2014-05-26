@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+    <key>PluginVersion</key>
+    <string>0.95</string>
+    <key>ServerApiVersion</key>
+    <string>1.0.0</string>
+    <key>CFBundleDisplayName</key>
+    <string>Beacon</string>
+    <key>CFBundleIdentifier</key>
+    <string>se.furtenbach.indigo.plugin.beacon</string>
+    <key>CFBundleVersion</key>
+    <string>1.0.0</string>
+    <key>CFBundleURLTypes</key>
+    <array>
+        <dict>
+            <key>CFBundleURLName</key>
+            <string>https://furtenbach.se/indigo/</string>
+        </dict>
+    </array>
+</dict>
+</plist>

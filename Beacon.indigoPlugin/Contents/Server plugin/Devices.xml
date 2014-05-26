@@ -1,0 +1,35 @@
+<?xml version="1.0"?>
+<Devices>
+	<Device type="custom" id="userLocation">
+		<Name>Beacon UserLocation</Name>
+		<ConfigUI>
+			<SupportURL>http://furtenbach.se/indigo/help.html</SupportURL>
+			<Field id="autoLabel" type="label">
+				<Label>Triggers when a user enters or exits a specific location</Label>
+			</Field>
+ 			<Field id="address" type="textfield">
+ 				<Label>Sender name:</Label>
+ 				<Description>The name of the sender, usually an email adress</Description>
+ 			</Field>
+ 			<Field id="location" type="textfield">
+ 				<Label>Location name:</Label>
+ 				<Description>Known as region name in Geohopper</Description>
+ 			</Field>
+		</ConfigUI>
+		<UiDisplayStateId>state</UiDisplayStateId>
+		<States>
+			<State id="state">
+				<ValueType>
+					<List>
+						<Option value="present">Present</Option>
+						<Option value="absent">Absent</Option>
+					</List>
+				</ValueType>
+				<TriggerLabel>State Changed</TriggerLabel>
+				<TriggerLabelPrefix>State Changed to</TriggerLabelPrefix>
+				<ControlPageLabel>Current State</ControlPageLabel>
+				<ControlPageLabelPrefix>State is</ControlPageLabelPrefix>
+			</State>
+		</States>
+	</Device>
+</Devices>

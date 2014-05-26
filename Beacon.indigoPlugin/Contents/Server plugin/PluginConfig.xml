@@ -1,0 +1,69 @@
+<?xml version="1.0"?>
+<PluginConfig>
+	<SupportURL>https://furtenbach.se/indigo/help</SupportURL>
+
+    <Field id="autoLabel1" type="label"> 
+        <Label>Beacon can receive HTTP updates from multiple sources. It's primarily designed for Geohopper, Geofancy and Beecon.</Label>
+    </Field>
+
+    <Field id="simpleSeparator1" type="separator"/>
+
+    <Field id="listenPort" type="textfield" readonly="NO" defaultValue="6192">
+            <Label>TCP port:</Label>
+            <Description>Listen port for the HTTP server</Description>
+    </Field>
+    
+    <Field type="checkbox" id="createDevice" defaultValue="true">
+    	<Label>Create device</Label>
+    	<Description>Automatically create device if it doesn't exist</Description>
+    </Field>
+    
+    <Field id="simpleSeparator2" type="separator"/>
+    
+    <Field type="checkbox" id="geohopper" defaultValue="true">
+    	<Label>Enable Geohopper</Label>
+    </Field>
+    
+    <Field id="autoLabel3" type="label"> 
+        <Label>Geohopper uses HTTP PUT to send JSON formatted updates. You need to make sure your server is reachable from the Internet on the TCP port above for this to work. The Geohopper Web Service needs to be configured to use http://your-server:port.</Label>
+    </Field>
+
+    <Field id="simpleSeparator3" type="separator"/>
+    
+    <Field type="checkbox" id="geofancy" defaultValue="true">
+    	<Label>Enable Geofancy</Label>
+    </Field>
+    
+    <Field id="autoLabel4" type="label"> 
+        <Label>Geofancy uses HTTP PUT or HTTP GET to send www-form-urlencoded updates. The Geofancy Web Service needs to be configured to use http://your-server:port.</Label>
+    </Field>
+        
+    <Field id="simpleSeparator4" type="separator"/>
+    
+    <Field type="checkbox" id="httpGet" defaultValue="true">
+    	<Label>Enable Beecon (or other HTTP GET sources)</Label>
+    </Field>
+    
+    <Field id="autoLabel6" type="label"> 
+        <Label>Beecon uses HTTP GET to send a query to the webserver. The plugin expects this query to be formatted in a specific way.</Label>
+    </Field>
+    
+    <Field id="autoLabel7" type="label"> 
+        <Label>Example:</Label>
+    </Field>
+    
+    <Field id="autoLabel8" type="label"> 
+        <Label>"http://your-server:port/?sender=[sender_name]&amp;location=[location_name]&amp;event=[event]"</Label>
+    </Field>
+    
+    <Field id="autoLabel9" type="label"> 
+        <Label>Event can be either LocationEnter, LocationExit or LocationTest.</Label>
+    </Field>
+
+	<Field id="simpleSeparator5" type="separator"/>
+	<Field type="checkbox" id="debugEnabled" defaultValue="false">
+		<Label>Enable debugging:</Label>
+		<Description>(not recommended)</Description>
+	</Field>
+
+</PluginConfig>

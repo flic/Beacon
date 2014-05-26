@@ -1,0 +1,7 @@
+<?xml version="1.0"?>
+<Events>
+    <SupportURL>http://www.yourdomain.com/plugin/pluginEvents.html</SupportURL>
+    <Event id="updateAvailable">
+        <Name>Plugin Update Available</Name>
+    </Event>
+</Events>
