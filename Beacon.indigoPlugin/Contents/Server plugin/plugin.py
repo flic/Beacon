@@ -30,8 +30,8 @@ class httpHandler(BaseHTTPRequestHandler):
       device = indigo.device.create(address=sender,deviceTypeId="userLocation",name=deviceName,protocol=indigo.kProtocol.Plugin,props={"location":location})
       self.plugin.debugLog(u"Created new device, "+ deviceName)
       device.updateStateOnServer(key="state",value="unknown")
-      self.plugin.deviceList[device.id] = {'ref':device,'name':device.name,'address':device.address,'location':device.pluginProps['location'].lower()}
-      return device
+      self.plugin.deviceList[device.id] = {'ref':device,'name':device.name,'address':device.address.lower(),'location':device.pluginProps['location'].lower()}
+      return device.id
 
    def sanityCheck_geohopper(self,data):
       self.plugin.debugLog(u"sanityCheck_geohopper called")
@@ -73,7 +73,7 @@ class httpHandler(BaseHTTPRequestHandler):
          indigo.server.log("Received "+event+" from "+sender+"//"+location+" but no corresponding device exists",isError=True)
          if self.plugin.createDevice:
             newdev = self.deviceCreate(sender,location)
-            self.deviceUpdate(newdev,data)
+            self.deviceUpdate(self.plugin.deviceList[newdev]['ref'],sender,location,event)
 
    def parseGeofancy(self,data):
       self.plugin.debugLog(u"parseGeofancy called")
@@ -115,6 +115,7 @@ class httpHandler(BaseHTTPRequestHandler):
             data = self.rfile.read(int(self.headers['Content-Length']))
             self.plugin.debugLog(u"Received JSON data: " + str(data))
             self.parseGeohopper(data)
+         self.plugin.debugLog(u"Sending HTTP 200 response")
          self.send_response(200)
          self.end_headers()
       except:
@@ -132,6 +133,7 @@ class httpHandler(BaseHTTPRequestHandler):
          self.plugin.debugLog(u"Received other HTTP GET data: " + str(parsed_path))
          data = parse_qs(parsed_path.query)
          self.parseBeecon(data)
+      self.plugin.debugLog(u"Sending HTTP 200 response")
       self.send_response(200)
       self.end_headers()
 
@@ -157,7 +159,7 @@ class Plugin(indigo.PluginBase):
 
    def deviceStartComm(self, device):
       self.debugLog(device.name + ": Starting device")
-      self.deviceList[device.id] = {'ref':device,'name':device.name,'address':device.address,'location':device.pluginProps['location'].lower()}
+      self.deviceList[device.id] = {'ref':device,'name':device.name,'address':device.address.lower(),'location':device.pluginProps['location'].lower()}
 
    def deviceStopComm(self, device):
       self.debugLog(device.name + ": Stopping device")
