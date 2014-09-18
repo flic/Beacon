@@ -15,10 +15,10 @@ class httpHandler(BaseHTTPRequestHandler):
       BaseHTTPRequestHandler.__init__(self,*args)
     
    def deviceUpdate(self,device,sender,location,event):
-      if event == "LocationEnter" or event == "enter":
+      if event == "LocationEnter" or event == "enter" or event == "1":
          indigo.server.log("Enter location notification received from sender/location "+sender+"//"+location)
          device.updateStateOnServer(key="state",value="present")
-      elif event == "LocationExit" or event == "exit":
+      elif event == "LocationExit" or event == "exit" or event == "0":
          indigo.server.log("Exit location notification received from sender/location "+sender+"//"+location)
          device.updateStateOnServer(key="state",value="absent")
       elif event == "LocationTest" or event=="test":
@@ -49,7 +49,7 @@ class httpHandler(BaseHTTPRequestHandler):
    def sanityCheck_geofancy(self,data):
       self.plugin.debugLog(u"sanityCheck_geofancy called")
       try:
-         if all(name in data for name in self.plugin.geofancy_params_params):
+         if all(name in data for name in self.plugin.geofancy_params):
             self.plugin.debugLog(u"Data passed Geofancy sanityCheck")
             return True
          else:
@@ -58,6 +58,20 @@ class httpHandler(BaseHTTPRequestHandler):
       except:
          self.plugin.debugLog(u"Exception occured in Geofancy sanityCheck")
          return false
+
+   def sanityCheck_geofency(self,data):
+      self.plugin.debugLog(u"sanityCheck_geofency called")
+      try:
+         if all(name in data for name in self.plugin.geofency_params):
+            self.plugin.debugLog(u"Data passed Geofency sanityCheck")
+            return True
+         else:
+            self.plugin.debugLog(u"Data failed Geofency sanityCheck")
+            return False
+      except:
+         self.plugin.debugLog(u"Exception occured in Geofency sanityCheck")
+         return false
+
  
    def parseResult(self,sender,location,event):
       self.plugin.debugLog(u"parseResult called")
@@ -89,6 +103,12 @@ class httpHandler(BaseHTTPRequestHandler):
       p = json.loads(data)
       if self.sanityCheck_geohopper(p):
          self.parseResult(p["sender"],p["location"],p["event"])
+
+   def parseGeofency(self,data):
+      self.plugin.debugLog(u"parseGeofency called")
+      p = json.loads(data)
+      if self.sanityCheck_geofency(p):
+         self.parseResult(p["device"],p["name"],p["entry"])
   
    def parseBeecon(data):  
       self.plugin.debugLog(u"parseBeecon called")
@@ -106,10 +126,15 @@ class httpHandler(BaseHTTPRequestHandler):
          ctype, pdict = cgi.parse_header(self.headers.getheader('content-type'))
          uagent = str(self.headers.getheader('user-agent'))
          self.plugin.debugLog(u"User-agent: " + uagent)
-         if uagent.find('geofancy') and ctype == 'application/x-www-form-urlencoded' and self.plugin.geofancy:
+         if ('Geofancy' in uagent) and ctype == 'application/x-www-form-urlencoded' and self.plugin.geofancy:
             data = self.rfile.read(int(self.headers['Content-Length']))
             self.plugin.debugLog(u"Received Geofancy data: " + str(data))
             self.parseGeofancy(data)
+
+         if ('Geofency' in uagent) and ctype == 'application/json' and self.plugin.geofency:
+            data = self.rfile.read(int(self.headers['Content-Length']))
+            self.plugin.debugLog(u"Received Geofency data: " + str(data))
+            self.parseGeofency(data)
 
          if ctype == 'application/json' and self.plugin.geohopper: 
             data = self.rfile.read(int(self.headers['Content-Length']))
@@ -126,7 +151,7 @@ class httpHandler(BaseHTTPRequestHandler):
       uagent = str(self.headers.getheader('user-agent'))
       self.plugin.debugLog(u"User-agent: " + uagent)
       parsed_path = urlparse(self.path)
-      if uagent.find('geofancy') and self.plugin.geofancy:
+      if ('Geofancy' in uagent) and self.plugin.geofancy:
          self.plugin.debugLog(u"Received Geofancy data: " + str(parsed_path))
          self.parseGeofancy(data)
       elif self.plugin.httpGet:
@@ -143,6 +168,7 @@ class Plugin(indigo.PluginBase):
       self.deviceList = {}
       self.geohopper_params = ('sender','location','event')
       self.geofancy_params = ('device','id','latitude','longitude','timestamp','trigger')
+      self.geofency_params = ('id','name','entry','date','latitude','longitude','device')
 
    def __del__(self):
       indigo.PluginBase.__del__(self)
@@ -192,6 +218,7 @@ class Plugin(indigo.PluginBase):
       self.httpGet = self.pluginPrefs.get('httpGet',True)
       self.geofancy = self.pluginPrefs.get('geofancy',True)
       self.geohopper = self.pluginPrefs.get('geohopper',True)
+      self.geofency = self.pluginPrefs.get('geofency',True)
 
    def listenHTTP(self):
       self.debugLog(u"Starting HTTP listener thread")
