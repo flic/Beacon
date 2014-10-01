@@ -130,21 +130,21 @@ class httpHandler(BaseHTTPRequestHandler):
             data = self.rfile.read(int(self.headers['Content-Length']))
             self.plugin.debugLog(u"Received Geofancy data: " + str(data))
             self.parseGeofancy(data)
-
-         if ('Geofency' in uagent) and ctype == 'application/json' and self.plugin.geofency:
+         elif ('Geofency' in uagent) and ctype == 'application/json' and self.plugin.geofency:
             data = self.rfile.read(int(self.headers['Content-Length']))
             self.plugin.debugLog(u"Received Geofency data: " + str(data))
             self.parseGeofency(data)
-
-         if ctype == 'application/json' and self.plugin.geohopper: 
+         elif ctype == 'application/json' and self.plugin.geohopper: 
             data = self.rfile.read(int(self.headers['Content-Length']))
             self.plugin.debugLog(u"Received JSON data: " + str(data))
             self.parseGeohopper(data)
-         self.plugin.debugLog(u"Sending HTTP 200 response")
-         self.send_response(200)
-         self.end_headers()
       except:
          pass
+         
+      self.plugin.debugLog(u"Sending HTTP 200 response")
+      self.send_response(200)
+      self.end_headers()
+
 
    def do_GET(self):
       self.plugin.debugLog(u"Received HTTP GET")
@@ -158,6 +158,7 @@ class httpHandler(BaseHTTPRequestHandler):
          self.plugin.debugLog(u"Received other HTTP GET data: " + str(parsed_path))
          data = parse_qs(parsed_path.query)
          self.parseBeecon(data)
+
       self.plugin.debugLog(u"Sending HTTP 200 response")
       self.send_response(200)
       self.end_headers()

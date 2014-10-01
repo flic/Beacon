@@ -45,7 +45,7 @@
     </Field>
     
     <Field id="autoLabel5" type="label"> 
-        <Label>Geofency uses HTTP PUT to send JSON formatted updates. The Geofency Webhook needs to be configured to use http://your-server:port and POST format must be JSON-encoded.</Label>
+        <Label>Geofency uses HTTP PUT to send JSON formatted updates. The Geofency Web Service needs to be configured to use http://your-server:port.</Label>
     </Field>
         
     <Field id="simpleSeparator5" type="separator"/>
