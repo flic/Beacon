@@ -33,45 +33,18 @@ class httpHandler(BaseHTTPRequestHandler):
       self.plugin.deviceList[device.id] = {'ref':device,'name':device.name,'address':device.address.lower(),'location':device.pluginProps['location'].lower()}
       return device.id
 
-   def sanityCheck_geohopper(self,data):
-      self.plugin.debugLog(u"sanityCheck_geohopper called")
+   def sanityCheck(self,data,check):
+      self.plugin.debugLog(u"sanityCheck called")
       try:
-         if all(name in data for name in self.plugin.geohopper_params):
-            self.plugin.debugLog(u"Data passed Geohopper sanityCheck")
+         if all(name in data for name in check):
+            self.plugin.debugLog(u"Data passed sanityCheck")
             return True
          else:
-            self.plugin.debugLog(u"Data failed Geohopper sanityCheck")
+            self.plugin.debugLog(u"Data failed sanityCheck")
             return False
       except:
-         self.plugin.debugLog(u"Exception occured in Geohopper sanityCheck")
+         self.plugin.debugLog(u"Exception occured in sanityCheck")
          return false
-
-   def sanityCheck_geofancy(self,data):
-      self.plugin.debugLog(u"sanityCheck_geofancy called")
-      try:
-         if all(name in data for name in self.plugin.geofancy_params):
-            self.plugin.debugLog(u"Data passed Geofancy sanityCheck")
-            return True
-         else:
-            self.plugin.debugLog(u"Data failed Geofancy sanityCheck")
-            return False
-      except:
-         self.plugin.debugLog(u"Exception occured in Geofancy sanityCheck")
-         return false
-
-   def sanityCheck_geofency(self,data):
-      self.plugin.debugLog(u"sanityCheck_geofency called")
-      try:
-         if all(name in data for name in self.plugin.geofency_params):
-            self.plugin.debugLog(u"Data passed Geofency sanityCheck")
-            return True
-         else:
-            self.plugin.debugLog(u"Data failed Geofency sanityCheck")
-            return False
-      except:
-         self.plugin.debugLog(u"Exception occured in Geofency sanityCheck")
-         return false
-
  
    def parseResult(self,sender,location,event):
       self.plugin.debugLog(u"parseResult called")
@@ -95,28 +68,29 @@ class httpHandler(BaseHTTPRequestHandler):
       p = {}
       for key, value in pdata.iteritems():
          p.update({key:value[0]})
-      if self.sanityCheck_geofancy:
+      if self.sanityCheck(p,self.plugin.geofancy_params):
          self.parseResult(p["device"],p["id"],p["trigger"])
 
    def parseGeohopper(self,data):
       self.plugin.debugLog(u"parseGeohopper called")
       p = json.loads(data)
-      if self.sanityCheck_geohopper(p):
+      if self.sanityCheck(p,self.plugin.geohopper_params):
          self.parseResult(p["sender"],p["location"],p["event"])
 
    def parseGeofency(self,data):
       self.plugin.debugLog(u"parseGeofency called")
       p = json.loads(data)
-      if self.sanityCheck_geofency(p):
+      if self.sanityCheck(p,self.plugin.geofency_params):
          self.parseResult(p["device"],p["name"],p["entry"])
   
    def parseBeecon(data):  
       self.plugin.debugLog(u"parseBeecon called")
+      pdata = parse_qs(data)
       p = {}
-      for key, value in data.iteritems() :
+      for key, value in pdata.iteritems():
          p.update({key:value[0]})
-      if self.sanityCheck_geohopper(p):   
-         self.parseResult(p["sender"],p["location"],p["event"])
+      if self.sanityCheck(p,self.plugin.beecon_params):
+         self.parseResult("Beecon",p["region"],p["action"])
 
    def do_POST(self):
       global rootnode
@@ -134,6 +108,10 @@ class httpHandler(BaseHTTPRequestHandler):
             data = self.rfile.read(int(self.headers['Content-Length']))
             self.plugin.debugLog(u"Received Geofency data: " + str(data))
             self.parseGeofency(data)
+         elif ('Beecon' in uagent) and self.plugin.beecon:
+            data = self.rfile.read(int(self.headers['Content-Length']))
+            self.plugin.debugLog(u"Received Beecon data: " + str(data))
+            self.parseBeecon(data)
          elif ctype == 'application/json' and self.plugin.geohopper: 
             data = self.rfile.read(int(self.headers['Content-Length']))
             self.plugin.debugLog(u"Received JSON data: " + str(data))
@@ -145,24 +123,6 @@ class httpHandler(BaseHTTPRequestHandler):
       self.send_response(200)
       self.end_headers()
 
-
-   def do_GET(self):
-      self.plugin.debugLog(u"Received HTTP GET")
-      uagent = str(self.headers.getheader('user-agent'))
-      self.plugin.debugLog(u"User-agent: " + uagent)
-      parsed_path = urlparse(self.path)
-      if ('Geofancy' in uagent) and self.plugin.geofancy:
-         self.plugin.debugLog(u"Received Geofancy data: " + str(parsed_path))
-         self.parseGeofancy(data)
-      elif self.plugin.httpGet:
-         self.plugin.debugLog(u"Received other HTTP GET data: " + str(parsed_path))
-         data = parse_qs(parsed_path.query)
-         self.parseBeecon(data)
-
-      self.plugin.debugLog(u"Sending HTTP 200 response")
-      self.send_response(200)
-      self.end_headers()
-
 class Plugin(indigo.PluginBase):
    def __init__(self, pluginId, pluginDisplayName, pluginVersion, pluginPrefs):
       indigo.PluginBase.__init__(self, pluginId, pluginDisplayName, pluginVersion, pluginPrefs)
@@ -170,6 +130,7 @@ class Plugin(indigo.PluginBase):
       self.geohopper_params = ('sender','location','event')
       self.geofancy_params = ('device','id','latitude','longitude','timestamp','trigger')
       self.geofency_params = ('id','name','entry','date','latitude','longitude','device')
+      self.beecon_params = ('region','action')
 
    def __del__(self):
       indigo.PluginBase.__del__(self)
@@ -216,7 +177,7 @@ class Plugin(indigo.PluginBase):
       self.debug = self.pluginPrefs.get('debugEnabled',False)
       self.createDevice = self.pluginPrefs.get('createDevice',True)
       self.listenPort = int(self.pluginPrefs.get('listenPort',6192))
-      self.httpGet = self.pluginPrefs.get('httpGet',True)
+      self.beecon = self.pluginPrefs.get('beecon',True)
       self.geofancy = self.pluginPrefs.get('geofancy',True)
       self.geohopper = self.pluginPrefs.get('geohopper',True)
       self.geofency = self.pluginPrefs.get('geofency',True)

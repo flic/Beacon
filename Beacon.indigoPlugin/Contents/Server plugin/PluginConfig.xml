@@ -35,7 +35,7 @@
     </Field>
     
     <Field id="autoLabel4" type="label"> 
-        <Label>Geofancy uses HTTP PUT or HTTP GET to send www-form-urlencoded updates. The Geofancy Web Service needs to be configured to use http://your-server:port.</Label>
+        <Label>Geofancy uses HTTP PUT to send www-form-urlencoded updates. The Geofancy Web Service needs to be configured to use http://your-server:port.</Label>
     </Field>
 
     <Field id="simpleSeparator4" type="separator"/>
@@ -50,26 +50,14 @@
         
     <Field id="simpleSeparator5" type="separator"/>
     
-    <Field type="checkbox" id="httpGet" defaultValue="true">
-    	<Label>Enable Beecon (or other HTTP GET sources)</Label>
+    <Field type="checkbox" id="beecon" defaultValue="true">
+    	<Label>Enable Beecon</Label>
     </Field>
     
     <Field id="autoLabel6" type="label"> 
-        <Label>Beecon uses HTTP GET to send a query to the webserver. The plugin expects this query to be formatted in a specific way.</Label>
+        <Label>Beecon uses HTTP PUT to send a query to the webserver. The Beecon Call URL needs to be configured to use http://your-server:port.</Label>
     </Field>
     
-    <Field id="autoLabel7" type="label"> 
-        <Label>Example:</Label>
-    </Field>
-    
-    <Field id="autoLabel8" type="label"> 
-        <Label>"http://your-server:port/?sender=[sender_name]&amp;location=[location_name]&amp;event=[event]"</Label>
-    </Field>
-    
-    <Field id="autoLabel9" type="label"> 
-        <Label>Event can be either LocationEnter, LocationExit or LocationTest.</Label>
-    </Field>
-
 	<Field id="simpleSeparator6" type="separator"/>
 	<Field type="checkbox" id="debugEnabled" defaultValue="false">
 		<Label>Enable debugging:</Label>
