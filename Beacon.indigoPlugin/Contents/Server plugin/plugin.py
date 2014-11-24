@@ -15,14 +15,21 @@ class httpHandler(BaseHTTPRequestHandler):
       BaseHTTPRequestHandler.__init__(self,*args)
     
    def deviceUpdate(self,device,sender,location,event):
+      self.plugin.debugLog(u"deviceUpdate called")
       if event == "LocationEnter" or event == "enter" or event == "1":
          indigo.server.log("Enter location notification received from sender/location "+sender+"//"+location)
          device.updateStateOnServer(key="state",value="present")
+         for trigger in self.plugin.events["statePresent"]:
+            indigo.trigger.execute(trigger)
       elif event == "LocationExit" or event == "exit" or event == "0":
          indigo.server.log("Exit location notification received from sender/location "+sender+"//"+location)
          device.updateStateOnServer(key="state",value="absent")
+         for trigger in self.plugin.events["stateAbsent"]:
+            indigo.trigger.execute(trigger)
       elif event == "LocationTest" or event=="test":
          indigo.server.log("Test location notification received from sender/location "+sender+"//"+location)
+      for trigger in self.plugin.events["stateChange"]:
+         indigo.trigger.execute(trigger)
          
    def deviceCreate(self,sender,location):
       self.plugin.debugLog(u"deviceCreate called")
@@ -83,7 +90,7 @@ class httpHandler(BaseHTTPRequestHandler):
       if self.sanityCheck(p,self.plugin.geofency_params):
          self.parseResult(p["device"],p["name"],p["entry"])
   
-   def parseBeecon(data):  
+   def parseBeecon(self,data):  
       self.plugin.debugLog(u"parseBeecon called")
       pdata = parse_qs(data)
       p = {}
@@ -131,6 +138,11 @@ class Plugin(indigo.PluginBase):
       self.geofancy_params = ('device','id','latitude','longitude','timestamp','trigger')
       self.geofency_params = ('id','name','entry','date','latitude','longitude','device')
       self.beecon_params = ('region','action')
+      
+      self.events = dict()
+      self.events["stateChange"] = dict()
+      self.events["statePresent"] = dict()
+      self.events["stateAbsent"] = dict()
 
    def __del__(self):
       indigo.PluginBase.__del__(self)
@@ -155,6 +167,17 @@ class Plugin(indigo.PluginBase):
 
    def shutdown(self):
       self.debugLog(u"Shutdown called")
+
+   def triggerStartProcessing(self, trigger):
+      self.debugLog(u"Start processing trigger " + unicode(trigger.name))
+      self.events[trigger.pluginTypeId][trigger.id] = trigger
+
+
+   def triggerStopProcessing(self, trigger):
+      self.debugLog(u"Stop processing trigger " + unicode(trigger.name))
+      if trigger.pluginTypeId in self.events:
+         if trigger.id in self.events[trigger.pluginTypeId]:
+            del self.events[trigger.pluginTypeId][trigger.id]
 
    def validatePrefsConfigUi(self, valuesDict):	
       self.debugLog(u"validating Prefs called")	

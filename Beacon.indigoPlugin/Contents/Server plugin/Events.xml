@@ -1,0 +1,12 @@
+<?xml version="1.0"?>
+<Events>
+    <Event id="stateChange">
+        <Name>Device state change (any)</Name>
+    </Event>
+    <Event id="statePresent">
+        <Name>Device state change to present</Name>
+    </Event>
+    <Event id="stateAbsent">
+        <Name>Device state change to absent</Name>
+    </Event>
+</Events>
