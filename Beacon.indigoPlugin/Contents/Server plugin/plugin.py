@@ -4,14 +4,19 @@
 import string,cgi,time
 from os import curdir, sep
 from BaseHTTPServer import BaseHTTPRequestHandler, HTTPServer
+from SocketServer import ThreadingMixIn
 from urlparse import urlparse
 from cgi import parse_qs
 import simplejson as json
 import threading
 
+class ThreadedHTTPServer(ThreadingMixIn, HTTPServer):
+    """Handle requests in a separate thread."""
+
 class httpHandler(BaseHTTPRequestHandler):
    def __init__(self, plugin,*args):
       self.plugin = plugin
+      self.plugin.debugLog(u"New httpHandler thread: "+threading.currentThread().getName()+", total threads: "+str(threading.activeCount()))
       BaseHTTPRequestHandler.__init__(self,*args)
     
    def deviceUpdate(self,device,sender,location,event):
@@ -172,7 +177,6 @@ class Plugin(indigo.PluginBase):
       self.debugLog(u"Start processing trigger " + unicode(trigger.name))
       self.events[trigger.pluginTypeId][trigger.id] = trigger
 
-
    def triggerStopProcessing(self, trigger):
       self.debugLog(u"Stop processing trigger " + unicode(trigger.name))
       if trigger.pluginTypeId in self.events:
@@ -208,7 +212,7 @@ class Plugin(indigo.PluginBase):
    def listenHTTP(self):
       self.debugLog(u"Starting HTTP listener thread")
       indigo.server.log(u"Listening on TCP port " + str(self.listenPort))
-      self.server = HTTPServer(('', self.listenPort), lambda *args: httpHandler(self, *args))
+      self.server = ThreadedHTTPServer(('', self.listenPort), lambda *args: httpHandler(self, *args))
       self.server.serve_forever()
       
    def runConcurrentThread(self):
