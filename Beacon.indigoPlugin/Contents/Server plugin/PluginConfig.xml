@@ -1,6 +1,6 @@
 <?xml version="1.0"?>
 <PluginConfig>
-	<SupportURL>https://furtenbach.se/indigo/help</SupportURL>
+	<SupportURL>https://github.com/flic/beacon</SupportURL>
 
     <Field id="autoLabel1" type="label"> 
         <Label>Beacon can receive HTTP updates from multiple sources. It's primarily designed for Geohopper, Geofancy and Beecon.</Label>
@@ -57,8 +57,14 @@
     <Field id="autoLabel6" type="label"> 
         <Label>Beecon uses HTTP PUT to send a query to the webserver. The Beecon Call URL needs to be configured to use http://your-server:port.</Label>
     </Field>
-    
+
 	<Field id="simpleSeparator6" type="separator"/>
+	<Field type="checkbox" id="createVar" defaultValue="false">
+		<Label>Create variables:</Label>
+		<Description>Creates "Beacon_" deviceID, name and location variables when triggered.</Description>
+	</Field>
+    
+	<Field id="simpleSeparator7" type="separator"/>
 	<Field type="checkbox" id="debugEnabled" defaultValue="false">
 		<Label>Enable debugging:</Label>
 		<Description>(not recommended)</Description>

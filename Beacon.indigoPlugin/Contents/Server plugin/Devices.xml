@@ -1,9 +1,9 @@
 <?xml version="1.0"?>
 <Devices>
-	<Device type="custom" id="userLocation">
-		<Name>Beacon UserLocation</Name>
+		<Device type="sensor" id="beacon">
+		<Name>Geofence Beacon</Name>
 		<ConfigUI>
-			<SupportURL>http://furtenbach.se/indigo/help.html</SupportURL>
+			<SupportURL>https://github.com/flic/beacon</SupportURL>
 			<Field id="autoLabel" type="label">
 				<Label>Triggers when a user enters or exits a specific location</Label>
 			</Field>
@@ -15,21 +15,23 @@
  				<Label>Location name:</Label>
  				<Description>Known as region name in Geohopper</Description>
  			</Field>
+			<Field id="SupportsOnState" type="checkbox" defaultValue="true" hidden="true">
+				<Label>Show ON/OFF state:</Label>
+			</Field>
+			<Field id="SupportsSensorValue" type="checkbox" defaultValue="false" hidden="true">
+				<Label>Show sensor value state:</Label>
+			</Field>
+			<Field id="SupportsStatusRequest" type="checkbox" defaultValue="false" hidden="true">
+				<Label>Enable status request / refresh button:</Label>
+			</Field>
+			<Field id="AllowOnStateChange" type="checkbox" defaultValue="false" hidden="true">
+				<Label>Enable controls to override on/off state</Label>
+			</Field>
+			<Field id="AllowSensorValueChange" type="checkbox" hidden="true" defaultValue="false">
+				<Label>Enable controls to override sensor value state</Label>
+			</Field>
 		</ConfigUI>
-		<UiDisplayStateId>state</UiDisplayStateId>
 		<States>
-			<State id="state">
-				<ValueType>
-					<List>
-						<Option value="present">Present</Option>
-						<Option value="absent">Absent</Option>
-					</List>
-				</ValueType>
-				<TriggerLabel>State Changed</TriggerLabel>
-				<TriggerLabelPrefix>State Changed to</TriggerLabelPrefix>
-				<ControlPageLabel>Current State</ControlPageLabel>
-				<ControlPageLabelPrefix>State is</ControlPageLabelPrefix>
-			</State>
 		</States>
 	</Device>
 </Devices>

@@ -9,6 +9,13 @@ from urlparse import urlparse
 from cgi import parse_qs
 import simplejson as json
 import threading
+import fnmatch
+
+def updateVar(name, value):
+	if name not in indigo.variables:
+		indigo.variable.create(name, value=value)
+	else:
+		indigo.variable.updateValue(name, value)
 
 class ThreadedHTTPServer(ThreadingMixIn, HTTPServer):
     """Handle requests in a separate thread."""
@@ -19,30 +26,44 @@ class httpHandler(BaseHTTPRequestHandler):
       self.plugin.debugLog(u"New httpHandler thread: "+threading.currentThread().getName()+", total threads: "+str(threading.activeCount()))
       BaseHTTPRequestHandler.__init__(self,*args)
     
-   def deviceUpdate(self,device,sender,location,event):
+   def deviceUpdate(self,device,deviceAddress,event):
       self.plugin.debugLog(u"deviceUpdate called")
+
+      if (self.plugin.createVar):
+         updateVar("Beacon_deviceID",str(device.id))
+         updateVar("Beacon_name",str(deviceAddress.split('@@')[0]))
+         updateVar("Beacon_location",str(deviceAddress.split('@@')[1]))
+      
       if event == "LocationEnter" or event == "enter" or event == "1":
-         indigo.server.log("Enter location notification received from sender/location "+sender+"//"+location)
-         device.updateStateOnServer(key="state",value="present")
-         for trigger in self.plugin.events["statePresent"]:
-            indigo.trigger.execute(trigger)
+         indigo.server.log("Enter location notification received from sender/location "+deviceAddress)
+         device.updateStateOnServer("onOffState", True)
+         device.updateStateImageOnServer(indigo.kStateImageSel.MotionSensorTripped)
+         self.triggerEvent("statePresent",deviceAddress)
       elif event == "LocationExit" or event == "exit" or event == "0":
-         indigo.server.log("Exit location notification received from sender/location "+sender+"//"+location)
-         device.updateStateOnServer(key="state",value="absent")
-         for trigger in self.plugin.events["stateAbsent"]:
-            indigo.trigger.execute(trigger)
+         indigo.server.log("Exit location notification received from sender/location "+deviceAddress)
+         device.updateStateOnServer("onOffState", False)
+         device.updateStateImageOnServer(indigo.kStateImageSel.MotionSensor)
+         self.triggerEvent("stateAbsent",deviceAddress)
       elif event == "LocationTest" or event=="test":
-         indigo.server.log("Test location notification received from sender/location "+sender+"//"+location)
-      for trigger in self.plugin.events["stateChange"]:
-         indigo.trigger.execute(trigger)
+         indigo.server.log("Test location notification received from sender/location "+deviceAddress)
+      self.triggerEvent("stateChange",deviceAddress)
+            
+   def triggerEvent(self,eventType,deviceAddress):
+      self.plugin.debugLog(u"triggerEvent called")
+      for trigger in self.plugin.events[eventType]:
+         if (self.plugin.events[eventType][trigger].pluginProps["manualAddress"]):
+            indigo.trigger.execute(trigger)
+         elif (fnmatch.fnmatch(deviceAddress.lower(),self.plugin.events[eventType][trigger].pluginProps["deviceAddress"].lower())):
+            indigo.trigger.execute(trigger)
          
    def deviceCreate(self,sender,location):
       self.plugin.debugLog(u"deviceCreate called")
-      deviceName = sender+"//"+location
-      device = indigo.device.create(address=sender,deviceTypeId="userLocation",name=deviceName,protocol=indigo.kProtocol.Plugin,props={"location":location})
+      deviceName = sender+"@@"+location
+      device = indigo.device.create(address=deviceName,deviceTypeId="beacon",name=deviceName,protocol=indigo.kProtocol.Plugin)
       self.plugin.debugLog(u"Created new device, "+ deviceName)
-      device.updateStateOnServer(key="state",value="unknown")
-      self.plugin.deviceList[device.id] = {'ref':device,'name':device.name,'address':device.address.lower(),'location':device.pluginProps['location'].lower()}
+      device.updateStateOnServer("onOffState",False)
+      device.updateStateImageOnServer(indigo.kStateImageSel.MotionSensor)
+      self.plugin.deviceList[device.id] = {'ref':device,'name':device.name,'address':device.address.lower()}
       return device.id
 
    def sanityCheck(self,data,check):
@@ -60,19 +81,20 @@ class httpHandler(BaseHTTPRequestHandler):
  
    def parseResult(self,sender,location,event):
       self.plugin.debugLog(u"parseResult called")
+      deviceAddress = sender.lower()+"@@"+location.lower()
       foundDevice = False         
       if self.plugin.deviceList:
          for b in self.plugin.deviceList:
-            if (self.plugin.deviceList[b]['address'] == sender.lower()) and (self.plugin.deviceList[b]['location'] == location.lower()):
+            if (self.plugin.deviceList[b]['address'] == deviceAddress):
                self.plugin.debugLog(u"Found userLocation device: " + self.plugin.deviceList[b]['name'])
-               self.deviceUpdate(self.plugin.deviceList[b]['ref'],sender,location,event)
+               self.deviceUpdate(self.plugin.deviceList[b]['ref'],deviceAddress,event)
                foundDevice = True
       if foundDevice == False:
          self.plugin.debugLog(u"No device found")
-         indigo.server.log("Received "+event+" from "+sender+"//"+location+" but no corresponding device exists",isError=True)
+         indigo.server.log("Received "+event+" from "+deviceAddress+" but no corresponding device exists",isError=True)
          if self.plugin.createDevice:
             newdev = self.deviceCreate(sender,location)
-            self.deviceUpdate(self.plugin.deviceList[newdev]['ref'],sender,location,event)
+            self.deviceUpdate(self.plugin.deviceList[newdev]['ref'],deviceAddress,event)
 
    def parseGeofancy(self,data):
       self.plugin.debugLog(u"parseGeofancy called")
@@ -148,7 +170,7 @@ class Plugin(indigo.PluginBase):
       self.events["stateChange"] = dict()
       self.events["statePresent"] = dict()
       self.events["stateAbsent"] = dict()
-
+      
    def __del__(self):
       indigo.PluginBase.__del__(self)
     
@@ -164,11 +186,15 @@ class Plugin(indigo.PluginBase):
 
    def deviceStartComm(self, device):
       self.debugLog(device.name + ": Starting device")
-      self.deviceList[device.id] = {'ref':device,'name':device.name,'address':device.address.lower(),'location':device.pluginProps['location'].lower()}
+      if (device.deviceTypeId == u'userLocation'):
+         indigo.server.log("Device "+device.name+" needs to be deleted and recreated.",isError=True)
+      else:
+         self.deviceList[device.id] = {'ref':device,'name':device.name,'address':device.address.lower()}
 
    def deviceStopComm(self, device):
       self.debugLog(device.name + ": Stopping device")
-      del self.deviceList[device.id]
+      if (device.deviceTypeId == u'beacon'):
+         del self.deviceList[device.id]
 
    def shutdown(self):
       self.debugLog(u"Shutdown called")
@@ -208,13 +234,14 @@ class Plugin(indigo.PluginBase):
       self.geofancy = self.pluginPrefs.get('geofancy',True)
       self.geohopper = self.pluginPrefs.get('geohopper',True)
       self.geofency = self.pluginPrefs.get('geofency',True)
+      self.createVar = self.pluginPrefs.get('createVar',False)
 
    def listenHTTP(self):
       self.debugLog(u"Starting HTTP listener thread")
       indigo.server.log(u"Listening on TCP port " + str(self.listenPort))
       self.server = ThreadedHTTPServer(('', self.listenPort), lambda *args: httpHandler(self, *args))
       self.server.serve_forever()
-      
+            
    def runConcurrentThread(self):
       while True:
          self.sleep(1)
