@@ -4,16 +4,15 @@
 		<Name>Geofence Beacon</Name>
 		<ConfigUI>
 			<SupportURL>https://github.com/flic/beacon</SupportURL>
-			<Field id="autoLabel" type="label">
-				<Label>Triggers when a user enters or exits a specific location</Label>
+			<Field id="label1" type="label">
+				<Label>Device address, in the form of [sender name]@@[location/region name]</Label>
+			</Field>
+			<Field id="label2" type="label">
+				<Label>For example, if you're using Geohopper sender name is usually your email address, and location name is the name of the region: "name@example.com@@myregion".</Label>
 			</Field>
  			<Field id="address" type="textfield">
- 				<Label>Sender name:</Label>
- 				<Description>The name of the sender, usually an email adress</Description>
- 			</Field>
- 			<Field id="location" type="textfield">
- 				<Label>Location name:</Label>
- 				<Description>Known as region name in Geohopper</Description>
+ 				<Label>Address:</Label>
+ 				<Description>Device address, in the form of [sender name]@@[location/region name]</Description>
  			</Field>
 			<Field id="SupportsOnState" type="checkbox" defaultValue="true" hidden="true">
 				<Label>Show ON/OFF state:</Label>
