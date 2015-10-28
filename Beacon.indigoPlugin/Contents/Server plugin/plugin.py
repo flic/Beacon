@@ -31,8 +31,8 @@ class httpHandler(BaseHTTPRequestHandler):
 
       if (self.plugin.createVar):
          updateVar("Beacon_deviceID",str(device.id))
-         updateVar("Beacon_name",str(deviceAddress.split('@@')[0]))
-         updateVar("Beacon_location",str(deviceAddress.split('@@')[1]))
+         updateVar("Beacon_name",deviceAddress.split('@@')[0])
+         updateVar("Beacon_location",deviceAddress.split('@@')[1])
       
       if event == "LocationEnter" or event == "enter" or event == "1":
          indigo.server.log("Enter location notification received from sender/location "+deviceAddress)
