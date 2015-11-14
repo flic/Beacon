@@ -23,10 +23,10 @@
 			<Field id="SupportsStatusRequest" type="checkbox" defaultValue="false" hidden="true">
 				<Label>Enable status request / refresh button:</Label>
 			</Field>
-			<Field id="AllowOnStateChange" type="checkbox" defaultValue="false" hidden="true">
+			<Field id="AllowOnStateChange" type="checkbox" defaultValue="false" hidden="false">
 				<Label>Enable controls to override on/off state</Label>
 			</Field>
-			<Field id="AllowSensorValueChange" type="checkbox" hidden="true" defaultValue="false">
+			<Field id="AllowSensorValueChange" type="checkbox" defaultValue="false" hidden="true">
 				<Label>Enable controls to override sensor value state</Label>
 			</Field>
 		</ConfigUI>
