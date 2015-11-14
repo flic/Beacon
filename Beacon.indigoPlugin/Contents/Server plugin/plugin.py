@@ -186,6 +186,24 @@ class Plugin(indigo.PluginBase):
          if trigger.id in self.events[trigger.pluginTypeId]:
             del self.events[trigger.pluginTypeId][trigger.id]
 
+   def actionControlSensor(self, action, device):
+      self.debugLog(u"Manual sensor state change request: " + device.name)
+      if device.pluginProps['AllowOnStateChange']:
+         if action.sensorAction == indigo.kSensorAction.TurnOn:
+			device.updateStateOnServer("onOffState", True)
+			device.updateStateImageOnServer(indigo.kStateImageSel.MotionSensorTripped)
+         elif action.sensorAction == indigo.kSensorAction.TurnOff:
+            device.updateStateOnServer("onOffState", False)
+            device.updateStateImageOnServer(indigo.kStateImageSel.MotionSensor)
+         elif action.sensorAction == indigo.kSensorAction.Toggle:
+            device.updateStateOnServer("onOffState", not device.onState)
+            if (device.onState):
+               device.updateStateImageOnServer(indigo.kStateImageSel.MotionSensorTripped)
+            else:
+               device.updateStateImageOnServer(indigo.kStateImageSel.MotionSensor)
+      else:
+         self.debugLog(u"ignored request (sensor is read-only)")
+
    def validatePrefsConfigUi(self, valuesDict):	
       self.debugLog(u"validating Prefs called")	
       port = int(valuesDict[u'listenPort'])	
