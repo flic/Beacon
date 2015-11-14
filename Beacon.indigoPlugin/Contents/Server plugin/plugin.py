@@ -63,7 +63,6 @@ class httpHandler(BaseHTTPRequestHandler):
       self.plugin.debugLog(u"Created new device, "+ deviceName)
       device.updateStateOnServer("onOffState",False)
       device.updateStateImageOnServer(indigo.kStateImageSel.MotionSensor)
-      self.plugin.deviceList[device.id] = {'ref':device,'name':device.name,'address':device.address.lower()}
       return device.id
  
    def parseResult(self,sender,location,event):
@@ -159,7 +158,8 @@ class Plugin(indigo.PluginBase):
       self.myThread.start()
 
    def deviceCreated(self, device):
-      self.debugLog(u"Created device of type \"%s\"" % device.deviceTypeId)
+      self.debugLog(device.name + ": Created device of type \"%s\"" % device.deviceTypeId)
+      self.deviceList[device.id] = {'ref':device,'name':device.name,'address':device.address.lower()}
 
    def deviceStartComm(self, device):
       self.debugLog(device.name + ": Starting device")
