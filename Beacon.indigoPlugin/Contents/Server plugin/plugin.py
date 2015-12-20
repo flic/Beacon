@@ -97,7 +97,7 @@ class httpHandler(BaseHTTPRequestHandler):
          data = self.rfile.read(int(self.headers['Content-Length']))
          data = data.decode('utf-8')         
 # Geofancy
-         if ('Geofancy' in uagent) and ctype == 'application/x-www-form-urlencoded' and self.plugin.geofancy:
+         if (('Geofancy' in uagent) or ('Locative' in uagent)) and ctype == 'application/x-www-form-urlencoded' and self.plugin.geofancy:
             self.plugin.debugLog(u"Received Geofancy data: " + data)
             pdata = parse_qs(data)
             p = {}
