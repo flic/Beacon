@@ -31,7 +31,7 @@
     <Field id="simpleSeparator3" type="separator"/>
     
     <Field type="checkbox" id="geofancy" defaultValue="true">
-    	<Label>Enable Geofancy</Label>
+    	<Label>Enable Locative</Label>
     </Field>
     
     <Field id="autoLabel4" type="label"> 
