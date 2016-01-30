@@ -34,12 +34,12 @@ class httpHandler(BaseHTTPRequestHandler):
          updateVar("Beacon_name",deviceAddress.split('@@')[0])
          updateVar("Beacon_location",deviceAddress.split('@@')[1])
       
-      if event == "LocationEnter" or event == "enter" or event == "1":
+      if event == "LocationEnter" or event == "enter" or event == "1" or event == self.plugin.customEnter:
          indigo.server.log("Enter location notification received from sender/location "+deviceAddress)
          device.updateStateOnServer("onOffState", True)
          device.updateStateImageOnServer(indigo.kStateImageSel.MotionSensorTripped)
          self.triggerEvent("statePresent",deviceAddress)
-      elif event == "LocationExit" or event == "exit" or event == "0":
+      elif event == "LocationExit" or event == "exit" or event == "0" or event == self.plugin.customExit:
          indigo.server.log("Exit location notification received from sender/location "+deviceAddress)
          device.updateStateOnServer("onOffState", False)
          device.updateStateImageOnServer(indigo.kStateImageSel.MotionSensor)
@@ -60,6 +60,7 @@ class httpHandler(BaseHTTPRequestHandler):
       self.plugin.debugLog(u"deviceCreate called")
       deviceName = sender+"@@"+location
       device = indigo.device.create(address=deviceName,deviceTypeId="beacon",name=deviceName,protocol=indigo.kProtocol.Plugin)
+      self.plugin.deviceList[device.id] = {'ref':device,'name':device.name,'address':device.address.lower()}
       self.plugin.debugLog(u"Created new device, "+ deviceName)
       device.updateStateOnServer("onOffState",False)
       device.updateStateImageOnServer(indigo.kStateImageSel.MotionSensor)
@@ -97,16 +98,29 @@ class httpHandler(BaseHTTPRequestHandler):
          data = self.rfile.read(int(self.headers['Content-Length']))
          data = data.decode('utf-8') 
          self.plugin.debugLog(u"Data (UTF-8 decoded):  %s" % data)
+# Custom
+         if ((self.plugin.custom) and (ctype == 'application/x-www-form-urlencoded')):
+            pdata = parse_qs(data)
+            p = {}
+            for key, value in pdata.iteritems():
+               p.update({key:value[0]})
+            if all(p.has_key(name) for name in (self.plugin.customSender,self.plugin.customLocation,self.plugin.customAction)):
+               self.plugin.debugLog(u"Recognised Custom")
+               if ((p[self.plugin.customAction] == self.plugin.customEnter) or (p[self.plugin.customAction] == self.plugin.customExit)):
+                  self.parseResult(p[self.plugin.customSender],p[self.plugin.customLocation],p[self.plugin.customAction])
+               else:
+                  indigo.server.log(u"Received Custom data, but value of Action parameter wasn't recognised",isError=True)
+               return
 # Locative
          if (('Geofancy' in uagent) or ('Locative' in uagent)):
-            self.plugin.debugLog(u"Recognised Locative ")
+            self.plugin.debugLog(u"Recognised Locative")
             if (self.plugin.geofancy):
                if (ctype == 'application/x-www-form-urlencoded'):
                   pdata = parse_qs(data)
                   p = {}
                   for key, value in pdata.iteritems():
                      p.update({key:value[0]})            
-                  if all(name in data for name in ('device','id','trigger')):
+                  if all(p.has_key(name) in data for name in ('device','id','trigger')):
                      self.parseResult(p["device"],p["id"],p["trigger"])
                   else:
                      indigo.server.log(u"Received Locative data, but one or more parameters are missing",isError=True)
@@ -233,6 +247,35 @@ class Plugin(indigo.PluginBase):
          errorMsgDict = indigo.Dict()
          errorMsgDict[u'port'] = u"Port number needs to be a valid TCP port (1-65535)."
          return (False, valuesDict, errorMsgDict)
+      if (valuesDict[u'custom']):
+         if (valuesDict[u'customSender'] == ""):
+            errorMsgDict = indigo.Dict()
+            errorMsgDict[u'customSender'] = u"Sender field can't be empty"
+            return (False, valuesDict, errorMsgDict)
+         if (valuesDict[u'customLocation'] == ""):
+            errorMsgDict = indigo.Dict()
+            errorMsgDict[u'customLocation'] = u"Location field can't be empty"
+            return (False, valuesDict, errorMsgDict)
+         if (valuesDict[u'customAction'] == ""):
+            errorMsgDict = indigo.Dict()
+            errorMsgDict[u'customAction'] = u"Action field can't be empty"
+            return (False, valuesDict, errorMsgDict)
+         if (valuesDict[u'customEnter'] == ""):
+            errorMsgDict = indigo.Dict()
+            errorMsgDict[u'customEnter'] = u"Enter field can't be empty"
+            return (False, valuesDict, errorMsgDict)
+         if (valuesDict[u'customExit'] == ""):
+            errorMsgDict = indigo.Dict()
+            errorMsgDict[u'customExit'] = u"Exit field can't be empty"
+            return (False, valuesDict, errorMsgDict)
+         if (valuesDict[u'customEnter'] == valuesDict[u'customExit']):
+            errorMsgDict = indigo.Dict()
+            errorMsgDict[u'customExit'] = u"Enter and Exit fields can't have same value"
+            return (False, valuesDict, errorMsgDict)
+         if (valuesDict[u'customSender'] == valuesDict[u'customLocation']):
+            errorMsgDict = indigo.Dict()
+            errorMsgDict[u'customLocation'] = u"Sender and Location fields can't have same value"
+            return (False, valuesDict, errorMsgDict)
       return (True, valuesDict)
 
    def closedPrefsConfigUi ( self, valuesDict, UserCancelled):
@@ -252,6 +295,12 @@ class Plugin(indigo.PluginBase):
       self.geohopper = self.pluginPrefs.get('geohopper',True)
       self.geofency = self.pluginPrefs.get('geofency',True)
       self.createVar = self.pluginPrefs.get('createVar',False)
+      self.custom = self.pluginPrefs.get('custom',False)
+      self.customSender = self.pluginPrefs.get('customSender','sender')
+      self.customLocation = self.pluginPrefs.get('customLocation','location')
+      self.customAction = self.pluginPrefs.get('customAction','action')
+      self.customEnter = self.pluginPrefs.get('customEnter','enter')
+      self.customExit = self.pluginPrefs.get('customExit','exit')
 
    def listenHTTP(self):
       self.debugLog(u"Starting HTTP listener thread")

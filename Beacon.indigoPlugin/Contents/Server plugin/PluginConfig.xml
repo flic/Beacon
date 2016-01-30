@@ -59,12 +59,39 @@
     </Field>
 
 	<Field id="simpleSeparator6" type="separator"/>
+	
+	<Field type="checkbox" id="custom" defaultValue="false">
+		<Label>Custom application</Label>
+		<Description>Custom application capable of HTTP POST (Content-type: application/x-www-form-urlencoded)</Description>
+	</Field>
+	<Field type="textfield" id="customSender" defaultValue="sender" visibleBindingId="custom" visibleBindingValue="true">
+		<Label>Sender field</Label>
+		<Description>Name of field that includes sender information</Description>
+	</Field>
+	<Field type="textfield" id="customLocation" defaultValue="location" visibleBindingId="custom" visibleBindingValue="true">
+		<Label>Location field</Label>
+		<Description>Name of field that includes location information</Description>
+	</Field>
+	<Field type="textfield" id="customAction" defaultValue="action" visibleBindingId="custom" visibleBindingValue="true">
+		<Label>Action field</Label>
+		<Description>Name of field that includes information of action taken (entry/exit)</Description>
+	</Field>
+	<Field type="textfield" id="customEnter" defaultValue="enter" visibleBindingId="custom" visibleBindingValue="true">
+		<Label>Entry trigger</Label>
+		<Description>Value of action field that triggers an entry action</Description>
+	</Field>
+	<Field type="textfield" id="customExit" defaultValue="exit" visibleBindingId="custom" visibleBindingValue="true">
+		<Label>Exit trigger</Label>
+		<Description>Value of action field that triggers an exit action</Description>
+	</Field>
+	<Field id="simpleSeparator7" type="separator"/>
+
 	<Field type="checkbox" id="createVar" defaultValue="false">
 		<Label>Create variables:</Label>
 		<Description>Creates "Beacon_" deviceID, name and location variables when triggered.</Description>
 	</Field>
     
-	<Field id="simpleSeparator7" type="separator"/>
+	<Field id="simpleSeparator8" type="separator"/>
 	<Field type="checkbox" id="debugEnabled" defaultValue="false">
 		<Label>Enable debugging:</Label>
 		<Description>(not recommended)</Description>
