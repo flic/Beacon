@@ -92,6 +92,22 @@
 	</Field>
     
 	<Field id="simpleSeparator8" type="separator"/>
+	
+	<Field type="checkbox" id="testTrigger" defaultValue="false">
+		<Label>Trigger on test message</Label>
+		<Description>Executes trigger when a test message is received</Description>
+	</Field>
+	<Field type="menu" id="testTriggeraction" defaultValue="toggle" visibleBindingId="testTrigger" visibleBindingValue="true">
+		<Label>Type of trigger:</Label>
+		<List>
+			<Option value="enter">Enter</Option>
+			<Option value="exit">Exit</Option>
+			<Option value="toggle">Toggle</Option>
+		</List>
+	</Field>
+
+	<Field id="simpleSeparator9" type="separator"/>
+	
 	<Field type="checkbox" id="debugEnabled" defaultValue="false">
 		<Label>Enable debugging:</Label>
 		<Description>(not recommended)</Description>

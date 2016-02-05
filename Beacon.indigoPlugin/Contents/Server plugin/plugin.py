@@ -46,6 +46,20 @@ class httpHandler(BaseHTTPRequestHandler):
          self.triggerEvent("stateAbsent",deviceAddress)
       elif event == "LocationTest" or event=="test":
          indigo.server.log("Test location notification received from sender/location "+deviceAddress)
+         if self.plugin.testTrigger:
+            indigo.server.log("Trigger action on test is enabled, triggeraction: "+self.plugin.testTriggeraction)
+            if self.plugin.testTriggeraction == "enter":
+			   device.updateStateOnServer("onOffState", True)
+			   device.updateStateImageOnServer(indigo.kStateImageSel.MotionSensorTripped)
+            elif self.plugin.testTriggeraction == "exit":
+               device.updateStateOnServer("onOffState", False)
+               device.updateStateImageOnServer(indigo.kStateImageSel.MotionSensor)
+            elif self.plugin.testTriggeraction == "toggle":
+               device.updateStateOnServer("onOffState", not device.onState)
+               if (device.onState):
+                  device.updateStateImageOnServer(indigo.kStateImageSel.MotionSensorTripped)
+               else:
+                  device.updateStateImageOnServer(indigo.kStateImageSel.MotionSensor)
       self.triggerEvent("stateChange",deviceAddress)
             
    def triggerEvent(self,eventType,deviceAddress):
@@ -301,6 +315,8 @@ class Plugin(indigo.PluginBase):
       self.customAction = self.pluginPrefs.get('customAction','action')
       self.customEnter = self.pluginPrefs.get('customEnter','enter')
       self.customExit = self.pluginPrefs.get('customExit','exit')
+      self.testTrigger = self.pluginPrefs.get('testTrigger',False)
+      self.testTriggeraction = self.pluginPrefs.get('testTriggeraction','toggle')
 
    def listenHTTP(self):
       self.debugLog(u"Starting HTTP listener thread")
