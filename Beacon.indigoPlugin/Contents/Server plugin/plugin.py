@@ -134,7 +134,7 @@ class httpHandler(BaseHTTPRequestHandler):
                   p = {}
                   for key, value in pdata.iteritems():
                      p.update({key:value[0]})            
-                  if all(p.has_key(name) in data for name in ('device','id','trigger')):
+                  if all(p.has_key(name) for name in ('device','id','trigger')):
                      self.parseResult(p["device"],p["id"],p["trigger"])
                   else:
                      indigo.server.log(u"Received Locative data, but one or more parameters are missing",isError=True)
@@ -148,7 +148,7 @@ class httpHandler(BaseHTTPRequestHandler):
             if (self.plugin.geofency):
                if (ctype == 'application/json'):
                   p = json.loads(data)
-                  if all(name in data for name in ('name','entry','device')):
+                  if all(p.has_key(name) for name in ('name','entry','device')):
                      self.parseResult(p["device"],p["name"],p["entry"])
                   else:
                      indigo.server.log(u"Received Geofency data, but one or more parameters are missing",isError=True)
@@ -164,7 +164,7 @@ class httpHandler(BaseHTTPRequestHandler):
                p = {}
                for key, value in pdata.iteritems():
                   p.update({key:value[0]})
-               if all(name in data for name in ('region','action')):
+               if all(p.has_key(name) for name in ('region','action')):
                   self.parseResult("Beecon",p["region"],p["action"])
                else:
                   indigo.server.log(u"Received Beecon data, but one or more parameters are missing",isError=True)
@@ -175,7 +175,7 @@ class httpHandler(BaseHTTPRequestHandler):
             self.plugin.debugLog(u"Received JSON data (possible Geohopper)")
             if (self.plugin.geohopper):
                p = json.loads(data)
-               if all(name in data for name in ('sender','location','event')):
+               if all(p.has_key(name) for name in ('sender','location','event')):
                   self.parseResult(p["sender"],p["location"],p["event"])
                else:
                   indigo.server.log(u"Received Geohopper data, but one or more parameters are missing",isError=True)
